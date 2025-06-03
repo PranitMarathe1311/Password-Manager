@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SecureVault - Password Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand svg {
+            margin-right: 0.75rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .nav-button svg {
+            margin-right: 6px;
+        }
+
+        /* Content container */
+        .content-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Password entries container */
+        .password-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Password entry card */
+        .password-entry {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .password-entry:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .password-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .entry-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .entry-title::before {
+            content: '🔐';
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .entry-field {
+            margin-bottom: 1.5rem;
+        }
+
+        .field-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field-value {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .field-value:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .password-value {
+            flex-grow: 1;
+            font-family: 'Monaco', 'Menlo', monospace;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .password-toggle {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .password-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .action-button svg {
+            margin-right: 0.5rem;
+        }
+
+        .edit-button {
+            color: #1e40af;
+        }
+
+        .edit-button:hover {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .delete-button {
+            color: #dc2626;
+        }
+
+        .delete-button:hover {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-color: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Add new button */
+        .add-new-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .add-new-button:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .add-new-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-modal {
+            background: transparent;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6b7280;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: #f3f4f6;
+            color: #374151;
+            transform: rotate(90deg);
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            color: #374151;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            padding: 1rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .form-button {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cancel-button {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 2px solid #e5e7eb;
+            color: #6b7280;
+        }
+
+        .cancel-button:hover {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+            border-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .empty-state-text {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .empty-state-subtext {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .sync-status {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 300;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .sync-status.show {
+            transform: translateX(0);
+        }
+
+        .sync-status.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .brand {
+                font-size: 1.4rem;
+            }
+
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-button {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .password-entry {
+                padding: 1.5rem;
+            }
+
+            .entry-title {
+                font-size: 1.25rem;
+            }
+
+            .add-new-button {
+                width: 60px;
+                height: 60px;
+                right: 1rem;
+                bottom: 1rem;
+            }
+
+            .modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.5rem;
+            }
+
+            .form-button {
+                padding: 0.8rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-button {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+
+            .entry-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated background particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="brand">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                SecureVault
+            </div>
+
+            <div class="nav-buttons">
+                <button id="view-all-button" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View All
+                </button>
+                <button id="export-button" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download
+                </button>
+                <button id="logout-button" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-container">
+        <div id="password-entries" class="password-entries">
+            <div id="empty-state" class="empty-state">
+                <span class="empty-state-icon">🔐</span>
+                <p class="empty-state-text">Your Digital Vault is Empty</p>
+                <p class="empty-state-subtext">Click the + button to securely store your first password</p>
+            </div>
+        </div>
+    </div>
+
+    <button id="add-new-button" class="add-new-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔐 Add New Password</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+
+            <form id="add-password-form" class="modal-form">
+                <div class="form-group">
+                    <label for="title" class="form-label">🏷️ Title</label>
+                    <input type="text" id="title" name="title" class="form-input"
+                        placeholder="Instagram, Facebook, Gmail..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="username" class="form-label">👤 Username</label>
+                    <input type="text" id="username" name="username" class="form-input"
+                        placeholder="Your username or email address" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">🔑 Password</label>
+                    <input type="password" id="password" name="password" class="form-input" 
+                        placeholder="Your secure password" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="form-button cancel-button" id="cancel-add">Cancel</button>
+                    <button type="submit" class="form-button submit-button">Save Securely</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">✏️ Edit Password</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+
+            <form id="edit-password-form" class="modal-form">
+                <input type="hidden" id="edit-index" name="edit-index">
+
+                <div class="form-group">
+                    <label for="edit-title" class="form-label">🏷️ Title</label>
+                    <input type="text" id="edit-title" name="edit-title" class="form-input"
+                        placeholder="Instagram, Facebook, Gmail..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-username" class="form-label">👤 Username</label>
+                    <input type="text" id="edit-username" name="edit-username" class="form-input"
+                        placeholder="Your username or email address" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-password" class="form-label">🔑 Password</label>
+                    <input type="password" id="edit-password" name="edit-password" class="form-input" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="form-button cancel-button" id="cancel-edit">Cancel</button>
+                    <button type="submit" class="form-button submit-button">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="viewer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">👁️ All Passwords</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="password-list" style="max-height: 400px; overflow-y: auto; padding: 1rem; background: rgba(248, 250, 252, 0.5); border-radius: 12px;"></div>
+            <div class="form-actions">
+                <button type="button" class="form-button cancel-button" id="close-viewer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create animated background particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize particles
+        createParticles();
+
+        // Store passwords
+        let passwords = [];
+
+        // DOM elements
+        const passwordEntriesContainer = document.getElementById('password-entries');
+        const emptyState = document.getElementById('empty-state');
+        const addNewButton = document.getElementById('add-new-button');
+        const addModal = document.getElementById('add-modal');
+        const editModal = document.getElementById('edit-modal');
+        const viewerModal = document.getElementById('viewer-modal');
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        const cancelAddButton = document.getElementById('cancel-add');
+        const cancelEditButton = document.getElementById('cancel-edit');
+        const addPasswordForm = document.getElementById('add-password-form');
+        const editPasswordForm = document.getElementById('edit-password-form');
+
+        // Function to show/hide empty state
+        function updateEmptyState() {
+            if (passwords.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        // Function to render all password entries
+        function renderPasswordEntries() {
+            // Clear existing entries (except empty state)
+            const entries = passwordEntriesContainer.querySelectorAll('.password-entry');
+            entries.forEach(entry => entry.remove());
+
+            // Render each password
+            passwords.forEach((password, index) => {
+                const entryElement = createPasswordEntryElement(password, index);
+                passwordEntriesContainer.appendChild(entryElement);
+            });
+
+            updateEmptyState();
+        }
+
+        // Function to create a password entry element
+        function createPasswordEntryElement(password, index) {
+            const entry = document.createElement('div');
+            entry.className = 'password-entry';
+            entry.dataset.index = index;
+
+            // Create entry title
+            const title = document.createElement('div');
+            title.className = 'entry-title';
+            title.textContent = password.title;
+            entry.appendChild(title);
+
+            // Create username field
+            const usernameField = document.createElement('div');
+            usernameField.className = 'entry-field';
+
+            const usernameLabel = document.createElement('div');
+            usernameLabel.className = 'field-label';
+            usernameLabel.textContent = '👤 Username';
+
+            const usernameValue = document.createElement('div');
+            usernameValue.className = 'field-value';
+            usernameValue.textContent = password.username;
+
+            usernameField.appendChild(usernameLabel);
+            usernameField.appendChild(usernameValue);
+            entry.appendChild(usernameField);
+
+            // Create password field
+            const passwordField = document.createElement('div');
+            passwordField.className = 'entry-field';
+
+            const passwordLabel = document.createElement('div');
+            passwordLabel.className = 'field-label';
+            passwordLabel.textContent = '🔑 Password';
+
+            const passwordValueContainer = document.createElement('div');
+            passwordValueContainer.className = 'field-value';
+
+            const passwordValue = document.createElement('div');
+            passwordValue.className = 'password-value';
+            passwordValue.textContent = '••••••••••';
+            passwordValue.dataset.hidden = 'true';
+            passwordValue.dataset.value = password.password;
+
+            const viewToggleButton = document.createElement('button');
+            viewToggleButton.className = 'password-toggle';
+            viewToggleButton.textContent = 'Show';
+            viewToggleButton.onclick = function () {
+                const isHidden = passwordValue.dataset.hidden === 'true';
+                passwordValue.textContent = isHidden ? password.password : '••••••••••';
+                passwordValue.dataset.hidden = isHidden ? 'false' : 'true';
+                viewToggleButton.textContent = isHidden ? 'Hide' : 'View';
+            };
+
+            passwordValueContainer.appendChild(passwordValue);
+            passwordValueContainer.appendChild(viewToggleButton);
+
+            passwordField.appendChild(passwordLabel);
+            passwordField.appendChild(passwordValueContainer);
+            entry.appendChild(passwordField);
+
+            // Create action buttons
+            const actions = document.createElement('div');
+            actions.className = 'entry-actions';
+
+            // Edit button
+            const editButton = document.createElement('button');
+            editButton.className = 'action-button edit-button';
+            editButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Edit
+                `;
+            editButton.onclick = function () {
+                showEditModal(index);
+            };
+
+            // Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'action-button delete-button';
+            deleteButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete
+                `;
+            deleteButton.onclick = function () {
+                if (confirm(`Are you sure you want to delete password for ${password.title}?`)) {
+                    passwords.splice(index, 1);
+                    renderPasswordEntries();
+                }
+            };
+
+            actions.appendChild(editButton);
+            actions.appendChild(deleteButton);
+            entry.appendChild(actions);
+
+            return entry;
+        }
+
+        // Show add modal
+        function showAddModal() {
+            addModal.style.display = 'flex';
+            addPasswordForm.reset();
+        }
+
+        // Show edit modal
+        function showEditModal(index) {
+            const password = passwords[index];
+
+            document.getElementById('edit-index').value = index;
+            document.getElementById('edit-title').value = password.title;
+            document.getElementById('edit-username').value = password.username;
+            document.getElementById('edit-password').value = password.password;
+
+            editModal.style.display = 'flex';
+        }
+
+        // Hide modals
+        function hideAddModal() {
+            addModal.style.display = 'none';
+        }
+
+        function hideEditModal() {
+            editModal.style.display = 'none';
+        }
+
+        // Function to show all passwords in the viewer modal
+        function showAllPasswords() {
+            if (passwords.length === 0) {
+                alert('No passwords to display.');
+                return;
+            }
+
+            const passwordList = document.getElementById('password-list');
+            passwordList.innerHTML = '';
+
+            passwords.forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.style.padding = '10px';
+                entryDiv.style.borderBottom = '1px solid #e5e7eb';
+
+                entryDiv.innerHTML = `
+            <div style="font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">${entry.title}</div>
+            <div style="margin-bottom: 4px;"><span style="color: #4b5563;">Username:</span> ${entry.username}</div>
+            <div class="password-row" style="display: flex; align-items: center;">
+                <span style="color: #4b5563;">Password:</span>
+                <span class="masked-password" style="margin-left: 5px; font-family: monospace;">••••••••••</span>
+                <span class="actual-password" style="margin-left: 5px; font-family: monospace; display: none;">${entry.password}</span>
+                <button class="toggle-password" style="margin-left: 10px; border: none; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; cursor: pointer;">Show</button>
+            </div>
+        `;
+
+                passwordList.appendChild(entryDiv);
+            });
+
+            // Add event listeners to toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function () {
+                    const row = this.parentElement;
+                    const maskedPassword = row.querySelector('.masked-password');
+                    const actualPassword = row.querySelector('.actual-password');
+
+                    if (maskedPassword.style.display !== 'none') {
+                        maskedPassword.style.display = 'none';
+                        actualPassword.style.display = 'inline';
+                        this.textContent = 'Hide';
+                    } else {
+                        maskedPassword.style.display = 'inline';
+                        actualPassword.style.display = 'none';
+                        this.textContent = 'Show';
+                    }
+                });
+            });
+
+            viewerModal.style.display = 'flex';
+        }
+
+        // Event Listeners
+        addNewButton.addEventListener('click', showAddModal);
+
+        // Close modal buttons
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                hideAddModal();
+                hideEditModal();
+                viewerModal.style.display = 'none';
+            });
+        });
+
+        cancelAddButton.addEventListener('click', hideAddModal);
+        cancelEditButton.addEventListener('click', hideEditModal);
+        document.getElementById('close-viewer').addEventListener('click', function () {
+            viewerModal.style.display = 'none';
+        });
+
+        // Handle add form submit - SINGLE EVENT LISTENER
+        addPasswordForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            passwords.push({
+                title,
+                username,
+                password,
+                lastModified: Date.now()
+            });
+
+            hideAddModal();
+            renderPasswordEntries();
+        });
+
+        // Handle edit form submit - SINGLE EVENT LISTENER
+        editPasswordForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const index = parseInt(document.getElementById('edit-index').value);
+            const title = document.getElementById('edit-title').value.trim();
+            const username = document.getElementById('edit-username').value.trim();
+            const password = document.getElementById('edit-password').value;
+
+            passwords[index] = {
+                title,
+                username,
+                password,
+                lastModified: Date.now()
+            };
+
+            hideEditModal();
+            renderPasswordEntries();
+        });
+
+        // Navigation button event listeners
+        document.getElementById('logout-button').addEventListener('click', function () {
+            console.log('Logging out...');
+            window.location.href = 'index.html';
+        });
+
+        // Export button functionality
+        document.getElementById('export-button').addEventListener('click', function () {
+            if (passwords.length === 0) {
+                alert('No passwords to export.');
+                return;
+            }
+
+            let exportText = "Your Saved Passwords:\n\n";
+
+            passwords.forEach((entry, index) => {
+                exportText += `=== ${entry.title} ===\n`;
+                exportText += `Username: ${entry.username}\n`;
+                exportText += `Password: ${entry.password}\n\n`;
+            });
+
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'my_passwords.txt';
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        });
+
+        // View all button functionality
+        document.getElementById('view-all-button').addEventListener('click', showAllPasswords);
+
+        // Initialize UI
+        updateEmptyState();
+    </script>
+</body>
+
+</html>
